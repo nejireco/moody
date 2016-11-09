@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"os"
 
 	"github.com/BurntSushi/toml"
 )
@@ -36,6 +37,16 @@ func DefaultConfig() *Config {
 // NewConfig creates a new configuration.
 func NewConfig(configPath string) (*Config, error) {
 	cfg := DefaultConfig()
+
+	if configPath == "" {
+		return cfg, nil
+	}
+
+	// if configPath does not exist, return default configuration
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return cfg, nil
+	}
+
 	_, err := toml.DecodeFile(configPath, &cfg)
 	if err != nil {
 		return nil, err
