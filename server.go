@@ -9,7 +9,7 @@ var (
 	broker *Broker
 )
 
-// Serve serves Pub/Sub broker
+// Serve serves Nejireco Pub/Sub broker.
 func Serve(ctx context.Context) {
 	cfg := ConfigFromContext(ctx)
 
@@ -25,8 +25,13 @@ func Serve(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	for _, t := range topics {
-		broker.Subscribe(ctx, t)
+	err = broker.SubscribeAll(ctx)
+	if err != nil {
+		log.Fatal(err)
 	}
-	broker.Receive(ctx)
+
+	err = broker.Receive(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

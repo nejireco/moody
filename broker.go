@@ -11,6 +11,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+// Broker is a Nejireco Pub/Sub client.
 type Broker struct {
 	PubConn        redis.Conn
 	SubConn        redis.PubSubConn
@@ -18,6 +19,7 @@ type Broker struct {
 	l              sync.RWMutex
 }
 
+// NewBroker creates a new broker client.
 func NewBroker(ctx context.Context, rawurl string) (*Broker, error) {
 	pubConn, err := redis.DialURL(rawurl)
 	if err != nil {
@@ -45,7 +47,7 @@ func NewBroker(ctx context.Context, rawurl string) (*Broker, error) {
 	return hc, nil
 }
 
-// Init initializes topics
+// Init initializes topics.
 func (b *Broker) Init(ctx context.Context) error {
 	for _, topic := range topics {
 		t, err := b.GCPubSubClient.CreateTopic(ctx, url.QueryEscape(topic))
@@ -61,35 +63,34 @@ func (b *Broker) Init(ctx context.Context) error {
 	return nil
 }
 
-// Subscribe subscribes topic
-func (b *Broker) Subscribe(ctx context.Context, topic string) error {
-	err := b.SubConn.Subscribe(topic)
-	if err != nil {
-		return err
+// SubscribeAll subscribes all topics.
+func (b *Broker) SubscribeAll(ctx context.Context) error {
+	for _, topic := range topics {
+		err := b.SubConn.Subscribe(topic)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-// Receive emits pushed messages
-func (b *Broker) Receive(ctx context.Context) {
+// Receive publishes pushed messages to Google Cloud Pub/Sub.
+func (b *Broker) Receive(ctx context.Context) error {
 	for {
 		switch v := b.SubConn.Receive().(type) {
 		case redis.Message:
-			msgIDs, err := b.Emit(ctx, v.Channel, v.Data)
+			msgIDs, err := b.emit(ctx, v.Channel, v.Data)
 			if err != nil {
-				log.Printf("Error: %s\n", err)
-			} else {
-				log.Printf("Emit topic: %s, data: %v, msgIDs: %v\n", v.Channel, v.Data, msgIDs)
+				return err
 			}
+			log.Printf("Emit topic: %s, data: %v, msgIDs: %v\n", v.Channel, v.Data, msgIDs)
 		case error:
-			// TODO
-			panic(v)
+			return v
 		}
 	}
 }
 
-// Emit publishes all topics to Google Cloud Pub/Sub
-func (b *Broker) Emit(ctx context.Context, topic string, data []byte) ([]string, error) {
+func (b *Broker) emit(ctx context.Context, topic string, data []byte) ([]string, error) {
 	b.l.RLock()
 	defer b.l.RUnlock()
 
@@ -98,13 +99,12 @@ func (b *Broker) Emit(ctx context.Context, topic string, data []byte) ([]string,
 		Data: data,
 	})
 	if err != nil {
-		// TODO
 		return nil, err
 	}
 	return msgIDs, nil
 }
 
-// Close closes all connections
+// Close closes all connections.
 func (b *Broker) Close() error {
 	if err := b.PubConn.Close(); err != nil {
 		return err

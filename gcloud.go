@@ -7,6 +7,7 @@ import (
 	"google.golang.org/api/option"
 )
 
+// NewGCPubSubClient creates a new Google Cloud Pub/Sub client.
 func NewGCPubSubClient(ctx context.Context) (*gcPubSub.Client, error) {
 	cfg := ConfigFromContext(ctx)
 

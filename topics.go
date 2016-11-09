@@ -1,10 +1,10 @@
 package pubsub
 
 var (
-	// TopicRecordingBegin is Pub/Sub topic name that publishes when recording is began
+	// TopicRecordingBegin is Nejireco Pub/Sub topic id that publishes when recording is began.
 	TopicRecordingBegin = "nejireco/recording/begin"
 
-	// TopicRecordingEnd is Pub/Sub topic name that publishes when recording is ended
+	// TopicRecordingEnd is Nejireco Pub/Sub topic id that publishes when recording is ended.
 	TopicRecordingEnd = "nejireco/recording/end"
 )
 
