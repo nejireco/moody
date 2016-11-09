@@ -9,6 +9,7 @@ var (
 	broker *Broker
 )
 
+// Serve serves Pub/Sub broker
 func Serve(ctx context.Context) {
 	cfg := ConfigFromContext(ctx)
 
@@ -18,6 +19,11 @@ func Serve(ctx context.Context) {
 		log.Fatal(err)
 	}
 	defer broker.Close()
+
+	err = broker.Init(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for _, t := range topics {
 		broker.Subscribe(ctx, t)
