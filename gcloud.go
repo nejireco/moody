@@ -5,33 +5,45 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
-	gcPubSub "cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/option"
 )
 
 var (
-	cloudTopics map[string]*gcPubSub.Topic
+	cloudTopics        map[string]*pubsub.Topic
+	cloudSubscriptions map[string]*pubsub.Subscription
 
-	newCloudClient   = defaultNewCloudClientFunc
-	createCloudTopic = defaultCreateCloudTopicFunc
-	newCloudTopic    = defaultNewCloudTopicFunc
+	newCloudClient          = defaultNewCloudClient
+	createCloudTopic        = defaultCreateCloudTopic
+	cloudTopic              = defaultCloudTopic
+	createCloudSubscription = defaultCreateCloudSubscription
+	cloudSubscription       = defaultCloudSubscription
 )
 
-func defaultNewCloudClientFunc(ctx context.Context, projectID string, opts ...option.ClientOption) (*gcPubSub.Client, error) {
-	return gcPubSub.NewClient(ctx, projectID, opts...)
+func defaultNewCloudClient(ctx context.Context, projectID string, opts ...option.ClientOption) (*pubsub.Client, error) {
+	return pubsub.NewClient(ctx, projectID, opts...)
 }
 
-func defaultCreateCloudTopicFunc(ctx context.Context, client *gcPubSub.Client, topic string) (*gcPubSub.Topic, error) {
-	return client.CreateTopic(ctx, topic)
+func defaultCreateCloudTopic(ctx context.Context, client *pubsub.Client, id string) (*pubsub.Topic, error) {
+	return client.CreateTopic(ctx, id)
 }
 
-func defaultNewCloudTopicFunc(client *gcPubSub.Client, topic string) *gcPubSub.Topic {
-	return client.Topic(topic)
+func defaultCloudTopic(client *pubsub.Client, id string) *pubsub.Topic {
+	return client.Topic(id)
 }
 
-// NewGCPubSubClient creates a new Google Cloud Pub/Sub client.
-func NewGCPubSubClient(ctx context.Context) (*gcPubSub.Client, error) {
+func defaultCreateCloudSubscription(ctx context.Context, client *pubsub.Client, id string, topic *pubsub.Topic, ackDeadline time.Duration, pushConfig *pubsub.PushConfig) (*pubsub.Subscription, error) {
+	return client.CreateSubscription(ctx, id, topic, ackDeadline, pushConfig)
+}
+
+func defaultCloudSubscription(client *pubsub.Client, id string) *pubsub.Subscription {
+	return client.Subscription(id)
+}
+
+// NewCloudPubSubClient creates a new Google Cloud Pub/Sub client.
+func NewCloudPubSubClient(ctx context.Context) (*pubsub.Client, error) {
 	cfg := ConfigFromContext(ctx)
 
 	client, err := newCloudClient(ctx, cfg.GCP.ProjectID, option.WithServiceAccountFile(cfg.GCP.ServiceAccountFile))
@@ -43,22 +55,45 @@ func NewGCPubSubClient(ctx context.Context) (*gcPubSub.Client, error) {
 }
 
 // CreateTopicIfNotExists creates a new Google Cloud Pub/Sub topic if it doesn't exist.
-func CreateTopicIfNotExists(ctx context.Context, client *gcPubSub.Client, rawtopic string) (*gcPubSub.Topic, error) {
-	topic := url.QueryEscape(rawtopic)
-	t, err := createCloudTopic(ctx, client, topic)
+func CreateTopicIfNotExists(ctx context.Context, client *pubsub.Client, rawid string) (*pubsub.Topic, error) {
+	id := url.QueryEscape(rawid)
+	topic, err := createCloudTopic(ctx, client, id)
 	if err != nil {
 		if strings.Contains(err.Error(), "Resource already exists in the project") {
-			return newCloudTopic(client, topic), nil
+			return cloudTopic(client, id), nil
 		}
 		return nil, err
 	}
-	return t, nil
+	return topic, nil
 }
 
 // GetCloudTopic returns registered topic.
-func GetCloudTopic(ctx context.Context, topic string) (*gcPubSub.Topic, error) {
-	if t, ok := cloudTopics[url.QueryEscape(topic)]; ok {
+func GetCloudTopic(ctx context.Context, rawid string) (*pubsub.Topic, error) {
+	id := url.QueryEscape(rawid)
+	if t, ok := cloudTopics[id]; ok {
 		return t, nil
 	}
-	return nil, fmt.Errorf("topic %s not found", topic)
+	return nil, fmt.Errorf("topic %s not found", rawid)
+}
+
+// CreateSubscriptionIfNotExists creates a new Google Cloud Pub/Sub topic if it doesn't exist.
+func CreateSubscriptionIfNotExists(ctx context.Context, client *pubsub.Client, rawid string, topic *pubsub.Topic, ackDeadline time.Duration, pushConfig *pubsub.PushConfig) (*pubsub.Subscription, error) {
+	id := url.QueryEscape(rawid)
+	s, err := createCloudSubscription(ctx, client, id, topic, ackDeadline, pushConfig)
+	if err != nil {
+		if strings.Contains(err.Error(), "Resource already exists in the project") {
+			return cloudSubscription(client, id), nil
+		}
+		return nil, err
+	}
+	return s, nil
+}
+
+// GetCloudSubscription returns registered subscription.
+func GetCloudSubscription(ctx context.Context, rawid string) (*pubsub.Subscription, error) {
+	id := url.QueryEscape(rawid)
+	if t, ok := cloudSubscriptions[id]; ok {
+		return t, nil
+	}
+	return nil, fmt.Errorf("subscription %s not found", rawid)
 }

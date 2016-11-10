@@ -30,6 +30,16 @@ func Serve(ctx context.Context) {
 		log.Fatal(err)
 	}
 
+	err = broker.SubscribeCloudTopics(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = broker.ReceiveCloud(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = broker.ReceiveLocal(ctx)
 	if err != nil {
 		log.Fatal(err)
