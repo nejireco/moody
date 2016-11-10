@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	moody "github.com/nejireco/pubsub"
+	"github.com/nejireco/moody"
 )
 
 // Exit codes are int values that represent an exit code for a particular error.
