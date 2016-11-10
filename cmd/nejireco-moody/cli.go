@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/nejireco/pubsub"
+	moody "github.com/nejireco/pubsub"
 )
 
 // Exit codes are int values that represent an exit code for a particular error.
@@ -31,7 +31,7 @@ func (cli *CLI) Run(args []string) int {
 	)
 
 	// Define option flag parse
-	flags := flag.NewFlagSet(Name, flag.ContinueOnError)
+	flags := flag.NewFlagSet(name, flag.ContinueOnError)
 	flags.SetOutput(cli.errStream)
 
 	flags.StringVar(&config, "config", "", "Location of config file")
@@ -46,17 +46,17 @@ func (cli *CLI) Run(args []string) int {
 
 	// Show version
 	if version {
-		fmt.Fprintf(cli.errStream, "%s version %s\n", Name, Version)
+		fmt.Fprintf(cli.errStream, "%s version %s\n", name, ver)
 		return ExitCodeOK
 	}
 
-	cfg, err := pubsub.NewConfig(config)
+	cfg, err := moody.NewConfig(config)
 	if err != nil {
 		fmt.Fprintf(cli.errStream, "Error: %s\n", err)
 		return ExitCodeError
 	}
-	ctx := pubsub.NewContext(context.Background(), cfg)
-	pubsub.Serve(ctx)
+	ctx := moody.NewContext(context.Background(), cfg)
+	moody.Serve(ctx)
 
 	return ExitCodeOK
 }

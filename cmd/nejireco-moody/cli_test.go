@@ -10,14 +10,14 @@ import (
 func TestRun_versionFlag(t *testing.T) {
 	outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 	cli := &CLI{outStream: outStream, errStream: errStream}
-	args := strings.Split("./nejireco-pubsub -version", " ")
+	args := strings.Split("./nejireco-moody -version", " ")
 
 	status := cli.Run(args)
 	if status != ExitCodeOK {
 		t.Errorf("expected %d to eq %d", status, ExitCodeOK)
 	}
 
-	expected := fmt.Sprintf("nejireco-pubsub version %s", Version)
+	expected := fmt.Sprintf("nejireco-moody version %s", ver)
 	if !strings.Contains(errStream.String(), expected) {
 		t.Errorf("expected %q to eq %q", errStream.String(), expected)
 	}
@@ -26,7 +26,7 @@ func TestRun_versionFlag(t *testing.T) {
 func TestRun_configFlag(t *testing.T) {
 	outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 	cli := &CLI{outStream: outStream, errStream: errStream}
-	args := strings.Split("./nejireco-pubsub -config", " ")
+	args := strings.Split("./nejireco-moody -config", " ")
 
 	status := cli.Run(args)
 	_ = status

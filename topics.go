@@ -1,4 +1,4 @@
-package pubsub
+package moody
 
 var (
 	// TopicRecordingBegin is Nejireco Pub/Sub topic id that publishes when recording is began.
