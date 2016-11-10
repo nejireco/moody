@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/url"
-	"strings"
 	"sync"
 
 	gcPubSub "cloud.google.com/go/pubsub"
@@ -50,15 +49,11 @@ func NewBroker(ctx context.Context, rawurl string) (*Broker, error) {
 // Init initializes topics.
 func (b *Broker) Init(ctx context.Context) error {
 	for _, topic := range topics {
-		t, err := b.GCPubSubClient.CreateTopic(ctx, url.QueryEscape(topic))
+		t, err := CreateTopicIfNotExists(ctx, b.GCPubSubClient, topic)
 		if err != nil {
-			if strings.Contains(err.Error(), "Resource already exists in the project") {
-				continue
-			}
 			return err
 		}
-		log.Printf("topic: %s created\n", t.ID())
-
+		cloudTopics[topic] = t
 	}
 	return nil
 }
@@ -94,7 +89,11 @@ func (b *Broker) emit(ctx context.Context, topic string, data []byte) ([]string,
 	b.l.RLock()
 	defer b.l.RUnlock()
 
-	t := b.GCPubSubClient.Topic(url.QueryEscape(topic))
+	t, err := GetCloudTopic(ctx, topic)
+	if err != nil {
+		return nil, err
+	}
+
 	msgIDs, err := t.Publish(ctx, &gcPubSub.Message{
 		Data: data,
 	})
