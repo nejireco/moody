@@ -25,12 +25,12 @@ func Serve(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	err = broker.SubscribeAll(ctx)
+	err = broker.SubscribeLocalTopics(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = broker.Receive(ctx)
+	err = broker.ReceiveLocal(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

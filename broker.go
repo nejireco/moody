@@ -58,8 +58,8 @@ func (b *Broker) Init(ctx context.Context) error {
 	return nil
 }
 
-// SubscribeAll subscribes all topics.
-func (b *Broker) SubscribeAll(ctx context.Context) error {
+// SubscribeLocalTopics subscribes all topics published from local.
+func (b *Broker) SubscribeLocalTopics(ctx context.Context) error {
 	for _, topic := range topics {
 		err := b.SubConn.Subscribe(topic)
 		if err != nil {
@@ -69,12 +69,12 @@ func (b *Broker) SubscribeAll(ctx context.Context) error {
 	return nil
 }
 
-// Receive publishes pushed messages to Google Cloud Pub/Sub.
-func (b *Broker) Receive(ctx context.Context) error {
+// ReceiveLocal receives pushed messages and publishes them to Google Cloud Pub/Sub.
+func (b *Broker) ReceiveLocal(ctx context.Context) error {
 	for {
 		switch v := b.SubConn.Receive().(type) {
 		case redis.Message:
-			msgIDs, err := b.emit(ctx, v.Channel, v.Data)
+			msgIDs, err := b.emitCloud(ctx, v.Channel, v.Data)
 			if err != nil {
 				return err
 			}
@@ -85,7 +85,7 @@ func (b *Broker) Receive(ctx context.Context) error {
 	}
 }
 
-func (b *Broker) emit(ctx context.Context, topic string, data []byte) ([]string, error) {
+func (b *Broker) emitCloud(ctx context.Context, topic string, data []byte) ([]string, error) {
 	b.l.RLock()
 	defer b.l.RUnlock()
 
