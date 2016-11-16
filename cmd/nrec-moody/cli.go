@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/nejireco/moody"
+	"github.com/drillbits/moody"
+	m "github.com/nejireco/moody"
 )
 
 // Exit codes are int values that represent an exit code for a particular error.
@@ -55,6 +56,8 @@ func (cli *CLI) Run(args []string) int {
 		fmt.Fprintf(cli.errStream, "Error: %s\n", err)
 		return ExitCodeError
 	}
+	cfg.Topics = append(cfg.Topics, m.Topics...)
+
 	ctx := moody.NewContext(context.Background(), cfg)
 	moody.Serve(ctx)
 

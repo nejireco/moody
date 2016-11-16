@@ -8,7 +8,8 @@ var (
 	TopicRecordingEnd = "nejireco/recording/end"
 )
 
-var topics = []string{
+// Topics are topics of Nejireco.
+var Topics = []string{
 	TopicRecordingBegin,
 	TopicRecordingEnd,
 }
