@@ -17,7 +17,7 @@ func TestRun_versionFlag(t *testing.T) {
 		t.Errorf("expected %d to eq %d", status, ExitCodeOK)
 	}
 
-	expected := fmt.Sprintf("nrec-moody version %s", ver)
+	expected := fmt.Sprintf("nrec-moody version %s", version)
 	if !strings.Contains(errStream.String(), expected) {
 		t.Errorf("expected %q to eq %q", errStream.String(), expected)
 	}
