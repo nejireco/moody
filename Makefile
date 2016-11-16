@@ -6,7 +6,7 @@ LDFLAGS := -X 'main.version=$(VERSION)' \
            -X 'main.revision=$(REVISION)'
 
 build: deps
-	go build -ldflags "$(LDFLAGS)" $(VERBOSE_FLAG) -o bin/nrec-moody ./cmd/nrec-moody
+	go build -ldflags "$(LDFLAGS)" $(VERBOSE_FLAG) ./cmd/nrec-moody
 
 test: deps
 	go test $(VERBOSE_FLAG) ./...
@@ -14,4 +14,7 @@ test: deps
 deps:
 	go get -d $(VERBOSE_FLAG)
 
-.PHONY: build test deps
+install: deps
+	go install -ldflags "$(LDFLAGS)" $(VERBOSE_FLAG) ./cmd/nrec-moody
+
+.PHONY: build test deps install
