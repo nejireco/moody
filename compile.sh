@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=$(git describe --tags --abbrev=0)
+VERSION=$(gobump show ./cmd/nrec-moody|sed -e 's/{"version":"\(.*\)"}/\1/g')
 REVISION=$(git rev-parse --short HEAD)
 LDFLAGS="-X 'main.version=${VERSION}' -X 'main.revision=${REVISION}'"
 
